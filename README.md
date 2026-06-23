@@ -1,10 +1,11 @@
 # QEC-Lab
 
 QEC-Lab is an open-source research project for learning, simulating, and
-benchmarking quantum error correction (QEC). The first milestone is a clean
-classical simulator for stabilizer-style error correction, starting with the
-odd-length bit-flip repetition code as a minimal model of syndrome extraction,
-decoding, logical-error-rate estimation, and matching-graph construction.
+benchmarking quantum error correction (QEC). It started with the odd-length
+bit-flip repetition code and is now growing into a mathematically benchmarked
+QEC scaffold with GF(2) linear algebra, CSS stabilizer codes, exact small-code
+analysis, syndrome extraction, matching-graph construction, and Monte Carlo
+experiments.
 
 Long term, the goal is to grow this into a visual and experimental platform for
 surface codes, realistic noise models, and decoder comparisons.
@@ -21,34 +22,36 @@ This project focuses on the mathematical and computational layer:
 - stabilizer checks
 - syndrome extraction
 - linear algebra over finite fields
+- CSS stabilizer code construction
 - probabilistic noise models
-- classical decoders
+- classical and quantum decoders
 - matching-graph construction
 - logical error-rate experiments
 - statistically meaningful decoder benchmarks
 
-## Current MVP
+## Current capabilities
 
-The current simulator implements the odd-length bit-flip repetition code:
+QEC-Lab currently includes:
 
-- physical qubits: `n = 2t + 1`
-- logical states: majority vote over `n` bits
-- stabilizer checks: adjacent parity checks `Z_i Z_{i+1}`
-- data-noise model: independent bit-flip errors with probability `p`
-- measurement-noise primitive: repeated noisy syndrome measurements
-- detection-event primitive: syndrome differences between consecutive rounds
-- decoders: minimum-weight and maximum-likelihood syndrome-compatible correction
-- matching graph: weighted fault graph with spatial and temporal boundaries
-- experiments: Monte Carlo logical-error-rate estimates with Wilson confidence intervals
-- exact benchmark: closed-form binomial-tail logical failure probability
+- exact odd-length bit-flip repetition-code experiments;
+- exact binomial-tail logical-error-rate benchmarks;
+- minimum-weight and maximum-likelihood repetition-code decoders;
+- Monte Carlo standard errors and Wilson confidence intervals;
+- repeated noisy syndrome measurements and detection events;
+- GF(2) row reduction, rank, nullspace, row-space membership, and matrix-vector products;
+- binary CSS stabilizer-code abstraction;
+- exact small-code quantum distance search;
+- built-in bit-flip repetition, Steane `[[7,1,3]]`, and Shor `[[9,1,3]]` code examples;
+- weighted matching graphs with spatial and temporal boundaries;
+- tests connecting algebraic syndromes to graph boundaries.
 
-The repetition code is intentionally small, but it contains the core QEC loop:
+The core QEC loop is:
 
 ```text
 prepare logical state -> apply noise -> measure syndrome -> decode -> check logical failure
 ```
 
-## Mathematical benchmark
+## Mathematical benchmarks
 
 For odd distance `n = 2t + 1`, independent bit-flip probability `p`, perfect
 syndrome measurement, and minimum-weight decoding, the exact logical failure
@@ -58,10 +61,25 @@ probability is
 P_L(n,p) = sum_{w=t+1}^{2t+1} binom(2t+1,w) p^w (1-p)^{2t+1-w}.
 ```
 
-For `p < 1/2`, minimum-weight decoding and maximum-likelihood decoding agree.
-For `p > 1/2`, the maximum-likelihood decoder selects the higher-weight member
-of the syndrome coset, while the minimum-weight decoder remains a distance-code
-baseline.
+For a CSS code with binary check matrices `H_X` and `H_Z`, QEC-Lab validates the
+commutation condition
+
+```text
+H_X H_Z^T = 0 over F_2
+```
+
+and computes
+
+```text
+k = n - rank(H_X) - rank(H_Z).
+```
+
+For a Pauli error represented by binary vectors `(x,z)`, the syndrome convention is
+
+```text
+s_X = H_X z,
+s_Z = H_Z x.
+```
 
 For matching decoders, an independent fault with probability `p_i` receives
 log-likelihood weight
@@ -76,9 +94,8 @@ For noisy syndrome measurements, QEC-Lab uses detection events
 d^(r) = s^(r) + s^(r-1) mod 2.
 ```
 
-This is the 1D version of the space-time matching-graph construction used for
-repetition and surface-code decoding with measurement errors. See
-`docs/theory.md` for the arXiv-grounded mathematical notes and references.
+See `docs/theory.md` and `docs/css_codes.md` for the arXiv-grounded mathematical
+notes and code examples.
 
 ## Quick Start
 
@@ -102,12 +119,29 @@ Run a CSV sweep with exact rates and confidence intervals:
 python experiments/repetition_sweep.py
 ```
 
+Inspect small CSS codes:
+
+```python
+from qec_lab import steane_code, shor_code
+
+for code in (steane_code(), shor_code()):
+    print(code.name, code.parameters(compute_distance=True))
+    print(code.stabilizer_generators())
+```
+
+Expected parameters:
+
+```text
+Steane [[7,1,3]] code (7, 1, 3)
+Shor [[9,1,3]] code (9, 1, 3)
+```
+
 ## Research Roadmap
 
-1. Add a PyMatching adapter for the 1D matching graph.
+1. Add a PyMatching adapter for the 1D and CSS matching-graph objects.
 2. Decode the phenomenological 1D repetition code with measurement errors.
-3. Build a decoding graph for rotated surface-code patches.
-4. Add phase-flip and depolarizing noise.
+3. Add erasure-channel and depolarizing-channel experiments for CSS codes.
+4. Build a decoding graph for rotated surface-code patches.
 5. Add circuit-level sampling through a stabilizer-circuit simulator.
 6. Benchmark exact, MWPM, and approximate decoders across physical error rates and code distances.
 7. Add a browser visualization of lattices, syndromes, matching graphs, and corrections.
@@ -115,8 +149,8 @@ python experiments/repetition_sweep.py
 
 ## Literature basis
 
-The current mathematical direction follows the standard route from exact
-repetition-code benchmarks to matching graphs, repeated noisy measurements,
+The current mathematical direction follows the standard route from CSS codes and
+exact repetition-code benchmarks to matching graphs, repeated noisy measurements,
 minimum-weight perfect matching, and then surface-code simulations. The key
 references are listed in `docs/theory.md` and `docs/references.bib`.
 
@@ -124,5 +158,5 @@ references are listed in `docs/theory.md` and `docs/references.bib`.
 
 > I am building QEC-Lab, a visual research platform for quantum error correction
 > simulation and decoder benchmarking. It combines quantum mechanics,
-> finite-field mathematics, probabilistic modeling, and scientific software
-> engineering.
+> finite-field mathematics, stabilizer-code theory, probabilistic modeling, graph
+> algorithms, and scientific software engineering.
