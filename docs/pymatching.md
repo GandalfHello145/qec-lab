@@ -67,6 +67,34 @@ Expected result:
 ('measurement:t0:c0',)
 ```
 
+## Phenomenological logical-error-rate estimation
+
+The adapter can now run an end-to-end repeated-syndrome experiment:
+
+1. sample data errors and measurement errors over several rounds;
+2. compute measured syndromes and detection events;
+3. decode the detection events with PyMatching;
+4. apply decoded data-fault corrections to the final data state;
+5. estimate the logical failure rate.
+
+```python
+from qec_lab import estimate_phenomenological_logical_error_rate_with_pymatching
+
+result = estimate_phenomenological_logical_error_rate_with_pymatching(
+    distance=3,
+    rounds=3,
+    physical_error_rate=0.01,
+    measurement_error_rate=0.01,
+    trials=100,
+    seed=123,
+)
+print(result.logical_error_rate)
+```
+
+This is the first project-level MWPM benchmark loop. It is still a 1D repetition
+code benchmark, but it exercises the same software interface that will later be
+used for surface-code matching graphs.
+
 ## Demo script
 
 ```bash
