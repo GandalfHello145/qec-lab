@@ -57,16 +57,6 @@ Example output:
 distance=5 p=0.08 trials=2000 logical_error_rate=0.0185
 ```
 
-## Research Roadmap
-
-1. Add phase-flip and depolarizing noise.
-2. Add measurement errors and repeated syndrome rounds.
-3. Implement rotated surface-code lattice generation.
-4. Add minimum-weight perfect matching with PyMatching.
-5. Benchmark decoders across physical error rates.
-6. Add a browser visualization of lattices, syndromes, and corrections.
-7. Train a neural decoder and compare it against matching-based decoding.
-
 ## Application Pitch
 
 > I am building QEC-Lab, a visual research platform for quantum error correction
