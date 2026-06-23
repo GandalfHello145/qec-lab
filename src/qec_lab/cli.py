@@ -33,6 +33,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=7,
         help="Random seed for reproducible experiments.",
     )
+    parser.add_argument(
+        "--decoder",
+        choices=("minimum-weight", "maximum-likelihood"),
+        default="minimum-weight",
+        help="Decoder used to choose a syndrome-compatible correction.",
+    )
+    parser.add_argument(
+        "--confidence-level",
+        type=float,
+        default=0.95,
+        help="Confidence level for the Wilson score interval.",
+    )
     return parser
 
 
@@ -43,14 +55,25 @@ def main(argv: list[str] | None = None) -> int:
         physical_error_rate=args.physical_error_rate,
         trials=args.trials,
         seed=args.seed,
+        decoder=args.decoder,
     )
+    ci_low, ci_high = result.wilson_confidence_interval(args.confidence_level)
     print(
-        "distance={distance} p={p:.6g} trials={trials} "
-        "logical_error_rate={rate:.6g}".format(
+        "distance={distance} p={p:.6g} trials={trials} decoder={decoder} "
+        "logical_failures={failures} logical_error_rate={rate:.6g} "
+        "exact_logical_error_rate={exact:.6g} standard_error={standard_error:.6g} "
+        "confidence_level={confidence:.3g} ci_low={ci_low:.6g} ci_high={ci_high:.6g}".format(
             distance=result.distance,
             p=result.physical_error_rate,
             trials=result.trials,
+            decoder=result.decoder,
+            failures=result.logical_failures,
             rate=result.logical_error_rate,
+            exact=result.exact_logical_error_rate,
+            standard_error=result.standard_error,
+            confidence=args.confidence_level,
+            ci_low=ci_low,
+            ci_high=ci_high,
         )
     )
     return 0
