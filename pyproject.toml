@@ -12,6 +12,9 @@ license = { text = "MIT" }
 authors = [{ name = "Bakir Nahi" }]
 dependencies = []
 
+[project.optional-dependencies]
+matching = ["pymatching>=2.1"]
+
 [project.scripts]
 qec-lab = "qec_lab.cli:main"
 
