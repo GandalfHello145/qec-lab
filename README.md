@@ -4,8 +4,8 @@ QEC-Lab is an open-source research project for learning, simulating, and
 benchmarking quantum error correction (QEC). It started with the odd-length
 bit-flip repetition code and is now growing into a mathematically benchmarked
 QEC scaffold with GF(2) linear algebra, CSS stabilizer codes, exact small-code
-analysis, syndrome extraction, matching-graph construction, and Monte Carlo
-experiments.
+analysis, syndrome extraction, matching-graph construction, optional PyMatching
+MWPM decoding, and Monte Carlo experiments.
 
 Long term, the goal is to grow this into a visual and experimental platform for
 surface codes, realistic noise models, and decoder comparisons.
@@ -26,6 +26,7 @@ This project focuses on the mathematical and computational layer:
 - probabilistic noise models
 - classical and quantum decoders
 - matching-graph construction
+- optional PyMatching MWPM decoding
 - logical error-rate experiments
 - statistically meaningful decoder benchmarks
 
@@ -43,6 +44,8 @@ QEC-Lab currently includes:
 - exact small-code quantum distance search;
 - built-in bit-flip repetition, Steane `[[7,1,3]]`, and Shor `[[9,1,3]]` code examples;
 - weighted matching graphs with spatial and temporal boundaries;
+- optional conversion from QEC-Lab matching graphs to `pymatching.Matching`;
+- PyMatching decoders for perfect repetition-code syndromes and phenomenological detection events;
 - tests connecting algebraic syndromes to graph boundaries.
 
 The core QEC loop is:
@@ -94,8 +97,8 @@ For noisy syndrome measurements, QEC-Lab uses detection events
 d^(r) = s^(r) + s^(r-1) mod 2.
 ```
 
-See `docs/theory.md` and `docs/css_codes.md` for the arXiv-grounded mathematical
-notes and code examples.
+See `docs/theory.md`, `docs/css_codes.md`, and `docs/pymatching.md` for the
+arXiv-grounded mathematical notes and code examples.
 
 ## Quick Start
 
@@ -136,16 +139,29 @@ Steane [[7,1,3]] code (7, 1, 3)
 Shor [[9,1,3]] code (9, 1, 3)
 ```
 
+Use optional PyMatching decoding:
+
+```bash
+pip install -e .[matching]
+python experiments/pymatching_phenomenological_demo.py
+```
+
+Expected output:
+
+```text
+perfect_syndrome_faults=x2
+phenomenological_faults=measurement:t0:c0
+```
+
 ## Research Roadmap
 
-1. Add a PyMatching adapter for the 1D and CSS matching-graph objects.
-2. Decode the phenomenological 1D repetition code with measurement errors.
-3. Add erasure-channel and depolarizing-channel experiments for CSS codes.
-4. Build a decoding graph for rotated surface-code patches.
-5. Add circuit-level sampling through a stabilizer-circuit simulator.
-6. Benchmark exact, MWPM, and approximate decoders across physical error rates and code distances.
-7. Add a browser visualization of lattices, syndromes, matching graphs, and corrections.
-8. Train a neural decoder and compare it against exact and matching-based baselines.
+1. Add a high-level PyMatching benchmark loop for the phenomenological repetition code.
+2. Add erasure-channel and depolarizing-channel experiments for CSS codes.
+3. Build a decoding graph for rotated surface-code patches.
+4. Add circuit-level sampling through a stabilizer-circuit simulator.
+5. Benchmark exact, MWPM, and approximate decoders across physical error rates and code distances.
+6. Add a browser visualization of lattices, syndromes, matching graphs, and corrections.
+7. Train a neural decoder and compare it against exact and matching-based baselines.
 
 ## Literature basis
 
