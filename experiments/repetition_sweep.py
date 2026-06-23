@@ -8,7 +8,10 @@ def main() -> None:
     distances = [3, 5, 7]
     trials = 5000
 
-    print("distance,physical_error_rate,logical_error_rate")
+    print(
+        "distance,physical_error_rate,trials,logical_failures,"
+        "logical_error_rate,exact_logical_error_rate,standard_error,ci95_low,ci95_high"
+    )
     for distance in distances:
         code = RepetitionCode(distance=distance)
         for rate in rates:
@@ -17,7 +20,12 @@ def main() -> None:
                 trials=trials,
                 seed=distance * 10_000 + int(rate * 10_000),
             )
-            print(f"{distance},{rate},{result.logical_error_rate:.6f}")
+            ci_low, ci_high = result.wilson_confidence_interval()
+            print(
+                f"{distance},{rate},{trials},{result.logical_failures},"
+                f"{result.logical_error_rate:.8f},{result.exact_logical_error_rate:.8f},"
+                f"{result.standard_error:.8f},{ci_low:.8f},{ci_high:.8f}"
+            )
 
 
 if __name__ == "__main__":
