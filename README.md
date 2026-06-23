@@ -4,7 +4,7 @@ QEC-Lab is an open-source research project for learning, simulating, and
 benchmarking quantum error correction (QEC). The first milestone is a clean
 classical simulator for stabilizer-style error correction, starting with the
 odd-length bit-flip repetition code as a minimal model of syndrome extraction,
-decoding, and logical-error-rate estimation.
+decoding, logical-error-rate estimation, and matching-graph construction.
 
 Long term, the goal is to grow this into a visual and experimental platform for
 surface codes, realistic noise models, and decoder comparisons.
@@ -23,6 +23,7 @@ This project focuses on the mathematical and computational layer:
 - linear algebra over finite fields
 - probabilistic noise models
 - classical decoders
+- matching-graph construction
 - logical error-rate experiments
 - statistically meaningful decoder benchmarks
 
@@ -37,6 +38,7 @@ The current simulator implements the odd-length bit-flip repetition code:
 - measurement-noise primitive: repeated noisy syndrome measurements
 - detection-event primitive: syndrome differences between consecutive rounds
 - decoders: minimum-weight and maximum-likelihood syndrome-compatible correction
+- matching graph: weighted fault graph with spatial and temporal boundaries
 - experiments: Monte Carlo logical-error-rate estimates with Wilson confidence intervals
 - exact benchmark: closed-form binomial-tail logical failure probability
 
@@ -61,9 +63,22 @@ For `p > 1/2`, the maximum-likelihood decoder selects the higher-weight member
 of the syndrome coset, while the minimum-weight decoder remains a distance-code
 baseline.
 
-The Monte Carlo estimator reports both the sampled logical error rate and the
-exact benchmark when the closed form applies. This makes small experiments
-useful for validating the simulator while keeping the exact mathematics visible.
+For matching decoders, an independent fault with probability `p_i` receives
+log-likelihood weight
+
+```text
+w_i = log((1-p_i)/p_i).
+```
+
+For noisy syndrome measurements, QEC-Lab uses detection events
+
+```text
+d^(r) = s^(r) + s^(r-1) mod 2.
+```
+
+This is the 1D version of the space-time matching-graph construction used for
+repetition and surface-code decoding with measurement errors. See
+`docs/theory.md` for the arXiv-grounded mathematical notes and references.
 
 ## Quick Start
 
@@ -89,14 +104,21 @@ python experiments/repetition_sweep.py
 
 ## Research Roadmap
 
-1. Extend repeated syndrome rounds to include data errors between rounds.
-2. Build a decoding graph for the 1D repetition code with noisy measurements.
-3. Add minimum-weight perfect matching with PyMatching.
+1. Add a PyMatching adapter for the 1D matching graph.
+2. Decode the phenomenological 1D repetition code with measurement errors.
+3. Build a decoding graph for rotated surface-code patches.
 4. Add phase-flip and depolarizing noise.
-5. Implement rotated surface-code lattice generation.
-6. Benchmark decoders across physical error rates and code distances.
-7. Add a browser visualization of lattices, syndromes, and corrections.
+5. Add circuit-level sampling through a stabilizer-circuit simulator.
+6. Benchmark exact, MWPM, and approximate decoders across physical error rates and code distances.
+7. Add a browser visualization of lattices, syndromes, matching graphs, and corrections.
 8. Train a neural decoder and compare it against exact and matching-based baselines.
+
+## Literature basis
+
+The current mathematical direction follows the standard route from exact
+repetition-code benchmarks to matching graphs, repeated noisy measurements,
+minimum-weight perfect matching, and then surface-code simulations. The key
+references are listed in `docs/theory.md` and `docs/references.bib`.
 
 ## Application Pitch
 
