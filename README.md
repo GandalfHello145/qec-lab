@@ -46,6 +46,7 @@ QEC-Lab currently includes:
 - weighted matching graphs with spatial and temporal boundaries;
 - optional conversion from QEC-Lab matching graphs to `pymatching.Matching`;
 - PyMatching decoders for perfect repetition-code syndromes and phenomenological detection events;
+- a PyMatching phenomenological logical-error-rate estimator;
 - tests connecting algebraic syndromes to graph boundaries.
 
 The core QEC loop is:
@@ -146,22 +147,22 @@ pip install -e .[matching]
 python experiments/pymatching_phenomenological_demo.py
 ```
 
-Expected output:
+Example output includes:
 
 ```text
 perfect_syndrome_faults=x2
 phenomenological_faults=measurement:t0:c0
+phenomenological_logical_error_rate=... logical_failures=... trials=20
 ```
 
 ## Research Roadmap
 
-1. Add a high-level PyMatching benchmark loop for the phenomenological repetition code.
-2. Add erasure-channel and depolarizing-channel experiments for CSS codes.
-3. Build a decoding graph for rotated surface-code patches.
-4. Add circuit-level sampling through a stabilizer-circuit simulator.
-5. Benchmark exact, MWPM, and approximate decoders across physical error rates and code distances.
-6. Add a browser visualization of lattices, syndromes, matching graphs, and corrections.
-7. Train a neural decoder and compare it against exact and matching-based baselines.
+1. Add erasure-channel and depolarizing-channel experiments for CSS codes.
+2. Build a decoding graph for rotated surface-code patches.
+3. Add circuit-level sampling through a stabilizer-circuit simulator.
+4. Benchmark exact, MWPM, and approximate decoders across physical error rates and code distances.
+5. Add a browser visualization of lattices, syndromes, matching graphs, and corrections.
+6. Train a neural decoder and compare it against exact and matching-based baselines.
 
 ## Literature basis
 
