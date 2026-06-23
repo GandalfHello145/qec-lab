@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import random
 from typing import Any
 
 from qec_lab.matching import (
@@ -8,7 +9,7 @@ from qec_lab.matching import (
     build_phenomenological_repetition_matching_graph,
     build_repetition_matching_graph,
 )
-from qec_lab.phenomenological import PhenomenologicalSample
+from qec_lab.phenomenological import PhenomenologicalRepetitionExperiment, PhenomenologicalSample
 from qec_lab.repetition import BitVector
 
 
@@ -43,6 +44,22 @@ class PyMatchingModel:
             for index, bit in enumerate(correction)
             if bit and index in self.index_to_fault_id
         )
+
+
+@dataclass(frozen=True)
+class PyMatchingPhenomenologicalResult:
+    """Logical-error-rate estimate from PyMatching phenomenological decoding."""
+
+    distance: int
+    rounds: int
+    physical_error_rate: float
+    measurement_error_rate: float
+    trials: int
+    logical_failures: int
+
+    @property
+    def logical_error_rate(self) -> float:
+        return self.logical_failures / self.trials
 
 
 def build_pymatching_model(graph: MatchingGraph) -> PyMatchingModel:
@@ -163,6 +180,82 @@ def decode_phenomenological_sample(sample: PhenomenologicalSample) -> tuple[str,
         physical_error_rate=sample.physical_error_rate,
         measurement_error_rate=sample.measurement_error_rate,
     )
+
+
+def correct_final_state_with_decoded_faults(
+    sample: PhenomenologicalSample,
+    decoded_fault_ids: tuple[str, ...],
+) -> BitVector:
+    """Apply decoded data-fault corrections to the final repetition-code state."""
+
+    corrected = list(sample.final_state)
+    for fault_id in decoded_fault_ids:
+        if not fault_id.startswith("data:"):
+            continue
+        qubit = _qubit_from_data_fault_id(fault_id)
+        corrected[qubit] ^= 1
+    return tuple(corrected)
+
+
+def run_phenomenological_trial_with_pymatching(
+    experiment: PhenomenologicalRepetitionExperiment,
+    physical_error_rate: float,
+    measurement_error_rate: float,
+    rng: random.Random,
+    logical_bit: int = 0,
+) -> bool:
+    """Return True iff one sampled repeated-syndrome trial fails logically."""
+
+    sample = experiment.sample(
+        physical_error_rate=physical_error_rate,
+        measurement_error_rate=measurement_error_rate,
+        rng=rng,
+        logical_bit=logical_bit,
+    )
+    decoded_faults = decode_phenomenological_sample(sample)
+    corrected = correct_final_state_with_decoded_faults(sample, decoded_faults)
+    return experiment.code.logical_measurement(corrected) != logical_bit
+
+
+def estimate_phenomenological_logical_error_rate_with_pymatching(
+    distance: int,
+    rounds: int,
+    physical_error_rate: float,
+    measurement_error_rate: float,
+    trials: int,
+    seed: int | None = None,
+) -> PyMatchingPhenomenologicalResult:
+    """Estimate logical failure under repeated noisy syndrome extraction."""
+
+    if trials <= 0:
+        raise ValueError("trials must be positive")
+    experiment = PhenomenologicalRepetitionExperiment(distance=distance, rounds=rounds)
+    rng = random.Random(seed)
+    failures = sum(
+        run_phenomenological_trial_with_pymatching(
+            experiment=experiment,
+            physical_error_rate=physical_error_rate,
+            measurement_error_rate=measurement_error_rate,
+            rng=rng,
+        )
+        for _ in range(trials)
+    )
+    return PyMatchingPhenomenologicalResult(
+        distance=distance,
+        rounds=rounds,
+        physical_error_rate=physical_error_rate,
+        measurement_error_rate=measurement_error_rate,
+        trials=trials,
+        logical_failures=failures,
+    )
+
+
+def _qubit_from_data_fault_id(fault_id: str) -> int:
+    try:
+        qubit_text = fault_id.rsplit(":q", maxsplit=1)[1]
+        return int(qubit_text)
+    except (IndexError, ValueError) as error:
+        raise ValueError(f"invalid data fault id: {fault_id}") from error
 
 
 def _import_pymatching() -> Any:
